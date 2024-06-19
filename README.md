@@ -33,4 +33,3 @@ shell
 ```python start.py```
 Наслаждайтесь использованием виртуальных инструментов!
 
-<iframe src="https://www.youtube.com/embed/_9swkmAhtH8" title="Как управлять компьютером через камеру" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
