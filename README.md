@@ -33,4 +33,8 @@ shell
 ```python start.py```
 Наслаждайтесь использованием виртуальных инструментов!
 
-<video controls; width="100%"><source src='1.mp4'></video>
+
+<video controls width="100%">
+  <source src="1.mp4" type="video/mp4">
+  Ваш браузер не поддерживает воспроизведение видео.
+</video>
