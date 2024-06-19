@@ -23,14 +23,9 @@
    ```git clone https://github.com/AlexeyFilippov2004/work_mouse.git```
 
 2. Перейдите в папку проекта:
-   ```cd work_mouser```
+   ```cd work_mouse```
 3. Запустите start.py:
 
 shell
 ```python start.py```
 Наслаждайтесь использованием виртуальных инструментов!
-
-
-<video controls>
-  <source src="1.mp4">
-</video>
