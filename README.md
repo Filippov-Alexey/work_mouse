@@ -34,6 +34,6 @@ shell
 Наслаждайтесь использованием виртуальных инструментов!
 
 
-<video controls width="100%">
+<video controls>
   <source src="1.mp4">
 </video>
