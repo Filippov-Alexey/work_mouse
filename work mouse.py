@@ -5,7 +5,7 @@ import pyautogui
 with open('settings.txt', 'r') as file:
     lines = file.readlines()
 
-every_second_line = []  # Создаем пустой список для сохранения каждой второй строки
+every_second_line = []  
 for index in range(1, len(lines), 2):
     every_second_line.append(lines[index])
 
