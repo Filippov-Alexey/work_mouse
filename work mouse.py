@@ -2,9 +2,6 @@ import cv2
 import time
 import numpy as np
 import pyautogui
-from icecream import ic
-
-ic.configureOutput(includeContext=True,prefix='ic:')
 
 def read_every_second_line(file_path):
     with open(file_path, 'r') as file:
@@ -16,8 +13,8 @@ def read_every_second_line(file_path):
     
     return every_second_line
 
-def move_cursor(blue_center, square_left, square_right, square_top, square_bottom, sm):
-    x, y = blue_center
+def move_cursor(move_center, square_left, square_right, square_top, square_bottom, sm):
+    x, y = move_center
     dx, dy = 0, 0
 
     if square_left <= x <= square_right and square_top <= y <= square_bottom:
@@ -49,28 +46,28 @@ def move_cursor(blue_center, square_left, square_right, square_top, square_botto
         new_y = screen_y + dy
         pyautogui.moveTo(new_x, new_y)
 
-def detect_and_track_colored_objects(frame, lower_yellow, upper_yellow):
-    yellow_center = None
-    yellow_radius = 0
+def detect_and_track_colored_objects(frame, lower_rigth, upper_rigth):
+    rigth_center = None
+    rigth_radius = 0
 
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-    mask_yellow = cv2.inRange(hsv, lower_yellow, upper_yellow)
+    mask_rigth = cv2.inRange(hsv, lower_rigth, upper_rigth)
 
     kernel = np.ones((3, 3), np.uint8)
-    mask_yellow = cv2.morphologyEx(mask_yellow, cv2.MORPH_OPEN, kernel, iterations=2)
-    mask_yellow = cv2.morphologyEx(mask_yellow, cv2.MORPH_CLOSE, kernel, iterations=2)
+    mask_rigth = cv2.morphologyEx(mask_rigth, cv2.MORPH_OPEN, kernel, iterations=2)
+    mask_rigth = cv2.morphologyEx(mask_rigth, cv2.MORPH_CLOSE, kernel, iterations=2)
 
-    contours_yellow, _ = cv2.findContours(mask_yellow, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    for contour in contours_yellow:
+    contours_rigth, _ = cv2.findContours(mask_rigth, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    for contour in contours_rigth:
         if cv2.contourArea(contour) > 100:
             (x, y), radius = cv2.minEnclosingCircle(contour)
-            if radius > yellow_radius:
-                yellow_center = (int(x), int(y))
-                yellow_radius = int(radius)
-    return yellow_center, yellow_radius
+            if radius > rigth_radius:
+                rigth_center = (int(x), int(y))
+                rigth_radius = int(radius)
+    return rigth_center, rigth_radius
 
-def handle_mouse_center(frame, green_center, green_radius, sec, button, color):
-    cv2.circle(frame, green_center, green_radius, color, 2)
+def handle_mouse_center(frame, left_center, left_radius, sec, button, color):
+    cv2.circle(frame, left_center, left_radius, color, 2)
     pyautogui.mouseDown(button=button)
     pyautogui.mouseUp(button=button)
     time.sleep(sec)
@@ -84,19 +81,19 @@ sec = float(every_second_line[0])
 sm = int(every_second_line[1])
 camera = int(every_second_line[2])
 close = int(every_second_line[8])
-lower_yellow = []
-upper_yellow = []
-lower_green = []
-upper_green = []
-lower_blue = []
-upper_blue = []
+lower_rigth = []
+upper_rigth = []
+lower_left = []
+upper_left = []
+lower_move = []
+upper_move = []
 
-lower_yellow = np.array(eval(eval(every_second_line2[0])),dtype=np.uint8)
-upper_yellow = np.array(eval(eval(every_second_line2[1])),dtype=np.uint8)
-lower_green = np.array(eval(eval(every_second_line2[2])),dtype=np.uint8)
-upper_green = np.array(eval(eval(every_second_line2[3])),dtype=np.uint8)
-lower_blue = np.array(eval(eval(every_second_line2[4])),dtype=np.uint8)
-upper_blue = np.array(eval(eval(every_second_line2[5])),dtype=np.uint8)
+lower_rigth = np.array(eval(eval(every_second_line2[0])),dtype=np.uint8)
+upper_rigth = np.array(eval(eval(every_second_line2[1])),dtype=np.uint8)
+lower_left = np.array(eval(eval(every_second_line2[2])),dtype=np.uint8)
+upper_left = np.array(eval(eval(every_second_line2[3])),dtype=np.uint8)
+lower_move = np.array(eval(eval(every_second_line2[4])),dtype=np.uint8)
+upper_move = np.array(eval(eval(every_second_line2[5])),dtype=np.uint8)
 
 cap = cv2.VideoCapture(camera)
 text_font = cv2.FONT_HERSHEY_SIMPLEX
@@ -144,33 +141,33 @@ while True:
                         text_font, text_scale, (255, 192, 203), text_thickness)
             square_index += 1
 
-    yellow_center, yellow_radius=detect_and_track_colored_objects(frame, lower_yellow, upper_yellow)
-    green_center, green_radius=detect_and_track_colored_objects(frame, lower_green, upper_green)
-    blue_center, blue_radius=detect_and_track_colored_objects(frame, lower_blue, upper_blue)
+    rigth_center, rigth_radius=detect_and_track_colored_objects(frame, lower_rigth, upper_rigth)
+    left_center, left_radius=detect_and_track_colored_objects(frame, lower_left, upper_left)
+    move_center, move_radius=detect_and_track_colored_objects(frame, lower_move, upper_move)
 
-    if green_center is not None and blue_center is None and yellow_center is None:
-        handle_mouse_center(frame,green_center,green_radius,sec,'right',(0, 255, 0))
+    if left_center is not None and move_center is None and rigth_center is None:
+        handle_mouse_center(frame,left_center,left_radius,sec,'right',(0, 255, 0))
 
-    if yellow_center is not None and blue_center is None and green_center is None:
-        handle_mouse_center(frame,yellow_center,yellow_radius,sec,'left',(0, 0, 255))
+    if rigth_center is not None and move_center is None and left_center is None:
+        handle_mouse_center(frame,rigth_center,rigth_radius,sec,'left',(0, 0, 255))
 
-    if blue_center is not None and yellow_center is None and green_center is None:
-        cv2.circle(frame, blue_center, blue_radius, (255, 0, 0), 2)
-        move_cursor(blue_center, square_left, square_right, square_top, square_bottom, sm)
+    if move_center is not None and rigth_center is None and left_center is None:
+        cv2.circle(frame, move_center, move_radius, (255, 0, 0), 2)
+        move_cursor(move_center, square_left, square_right, square_top, square_bottom, sm)
 
-    if blue_center is not None and yellow_center is not None and green_center is None:
-        cv2.circle(frame, blue_center, blue_radius, (255, 255, 0), 2)
+    if move_center is not None and rigth_center is not None and left_center is None:
+        cv2.circle(frame, move_center, move_radius, (255, 255, 0), 2)
         pyautogui.mouseDown(button='left')
         l=True
-        move_cursor(blue_center, square_left, square_right, square_top, square_bottom, sm)
+        move_cursor(move_center, square_left, square_right, square_top, square_bottom, sm)
 
-    if blue_center is not None and yellow_center is None and green_center is not None:
-        cv2.circle(frame, green_center, green_radius, (0, 255, 100), 2)
+    if move_center is not None and rigth_center is None and left_center is not None:
+        cv2.circle(frame, left_center, left_radius, (0, 255, 100), 2)
         pyautogui.mouseDown(button='right')
         r=True
-        move_cursor(blue_center, square_left, square_right, square_top, square_bottom, sm)
+        move_cursor(move_center, square_left, square_right, square_top, square_bottom, sm)
 
-    if blue_center is None and yellow_center is None and green_center is None:
+    if move_center is None and rigth_center is None and left_center is None:
         if r:
             pyautogui.mouseUp(button='right')
             r=False

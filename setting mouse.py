@@ -5,7 +5,6 @@ import os
 import win32com.client
 import subprocess
 
-
 with open('settings.txt', 'r') as file:
     lines = file.readlines()
 
@@ -43,9 +42,9 @@ vertically=int(every_second_line[6])
 turn=int(every_second_line[7])
 
 def mouse_click(event, x, y, flags, param):
-    global yellow_center, yellow_radius
-    global green_center, green_radius, blue_center, blue_radius
-    global lower_blue,upper_blue, lower_green, upper_green, lower_yellow, upper_yellow, i
+    global rigth_center, rigth_radius
+    global left_center, left_radius, move_center, move_radius
+    global lower_move,upper_move, lower_left, upper_left, lower_rigth, upper_rigth, i
 
     if event == cv2.EVENT_LBUTTONDBLCLK and i<3:
         i += 1
@@ -53,50 +52,50 @@ def mouse_click(event, x, y, flags, param):
             if i == 1:
                 bgr_color = frame[y, x]
                 hsv_color = cv2.cvtColor(np.uint8([[bgr_color]]), cv2.COLOR_BGR2HSV)
-                lower_yellow = np.array([int(hsv_color[0, 0, 0]) - 10, 100, 100])
-                upper_yellow = np.array([int(hsv_color[0, 0, 0]) + 10, 255, 255])
+                lower_rigth = np.array([int(hsv_color[0, 0, 0]) - 10, 100, 100])
+                upper_rigth = np.array([int(hsv_color[0, 0, 0]) + 10, 255, 255])
                 fa.write('left up:\n')
-                fa.write(f"'[{lower_yellow[0]}, {lower_yellow[1]}, {lower_yellow[2]}]'\n")
+                fa.write(f"'[{lower_rigth[0]}, {lower_rigth[1]}, {lower_rigth[2]}]'\n")
                 fa.write('left down:\n')
-                fa.write(f"'[{upper_yellow[0]}, {upper_yellow[1]}, {upper_yellow[2]}]'\n")
+                fa.write(f"'[{upper_rigth[0]}, {upper_rigth[1]}, {upper_rigth[2]}]'\n")
             if i == 2:
                 bgr_color = frame[y, x]
                 hsv_color = cv2.cvtColor(np.uint8([[bgr_color]]), cv2.COLOR_BGR2HSV)
-                lower_green = np.array([int(hsv_color[0, 0, 0]) - 10, 100, 100])
-                upper_green = np.array([int(hsv_color[0, 0, 0]) + 10, 255, 255])
+                lower_left = np.array([int(hsv_color[0, 0, 0]) - 10, 100, 100])
+                upper_left = np.array([int(hsv_color[0, 0, 0]) + 10, 255, 255])
                 fa.write('right up:\n')
-                fa.write(f"'[{lower_green[0]}, {lower_green[1]}, {lower_green[2]}]'\n")
+                fa.write(f"'[{lower_left[0]}, {lower_left[1]}, {lower_left[2]}]'\n")
                 fa.write('right dowm:\n')
-                fa.write(f"'[{upper_green[0]}, {upper_green[1]}, {upper_green[2]}]'\n")
+                fa.write(f"'[{upper_left[0]}, {upper_left[1]}, {upper_left[2]}]'\n")
             if i == 3:
                 bgr_color = frame[y, x]
                 hsv_color = cv2.cvtColor(np.uint8([[bgr_color]]), cv2.COLOR_BGR2HSV)
-                lower_blue = np.array([int(hsv_color[0, 0, 0]) - 10, 100, 100])
-                upper_blue = np.array([int(hsv_color[0, 0, 0]) + 10, 255, 255])
+                lower_move = np.array([int(hsv_color[0, 0, 0]) - 10, 100, 100])
+                upper_move = np.array([int(hsv_color[0, 0, 0]) + 10, 255, 255])
                 fa.write('move up:\n')
-                fa.write(f"'[{lower_blue[0]}, {lower_blue[1]}, {lower_blue[2]}]'\n")
+                fa.write(f"'[{lower_move[0]}, {lower_move[1]}, {lower_move[2]}]'\n")
                 fa.write('move down:\n')
-                fa.write(f"'[{upper_blue[0]}, {upper_blue[1]}, {upper_blue[2]}]'\n")
+                fa.write(f"'[{upper_move[0]}, {upper_move[1]}, {upper_move[2]}]'\n")
 
-def detect_and_track_colored_objects(frame, lower_yellow, upper_yellow):
-    yellow_center = None
-    yellow_radius = 0
+def detect_and_track_colored_objects(frame, lower_rigth, upper_rigth):
+    rigth_center = None
+    rigth_radius = 0
 
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-    mask_yellow = cv2.inRange(hsv, lower_yellow, upper_yellow)
+    mask_rigth = cv2.inRange(hsv, lower_rigth, upper_rigth)
 
     kernel = np.ones((3, 3), np.uint8)
-    mask_yellow = cv2.morphologyEx(mask_yellow, cv2.MORPH_OPEN, kernel, iterations=2)
-    mask_yellow = cv2.morphologyEx(mask_yellow, cv2.MORPH_CLOSE, kernel, iterations=2)
+    mask_rigth = cv2.morphologyEx(mask_rigth, cv2.MORPH_OPEN, kernel, iterations=2)
+    mask_rigth = cv2.morphologyEx(mask_rigth, cv2.MORPH_CLOSE, kernel, iterations=2)
 
-    contours_yellow, _ = cv2.findContours(mask_yellow, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    for contour in contours_yellow:
+    contours_rigth, _ = cv2.findContours(mask_rigth, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    for contour in contours_rigth:
         if cv2.contourArea(contour) > 100:
             (x, y), radius = cv2.minEnclosingCircle(contour)
-            if radius > yellow_radius:
-                yellow_center = (int(x), int(y))
-                yellow_radius = int(radius)
-    return yellow_center, yellow_radius
+            if radius > rigth_radius:
+                rigth_center = (int(x), int(y))
+                rigth_radius = int(radius)
+    return rigth_center, rigth_radius
 
 
 cap = cv2.VideoCapture(var3)
@@ -139,20 +138,20 @@ else:
 
             if i>=1:
                 cv2.putText(frame, 'right', (200,50), text_font, text_scale, color, text_thickness)
-                yellow_center, yellow_radius = detect_and_track_colored_objects(frame, lower_yellow, upper_yellow)
-                if yellow_center is not None:
-                    cv2.circle(frame, yellow_center, yellow_radius, (0, 255, 255), 2)
+                rigth_center, rigth_radius = detect_and_track_colored_objects(frame, lower_rigth, upper_rigth)
+                if rigth_center is not None:
+                    cv2.circle(frame, rigth_center, rigth_radius, (0, 255, 255), 2)
 
             if i>=2:
                 cv2.putText(frame, 'move', (300,50), text_font, text_scale, color, text_thickness)
-                green_center, green_radius = detect_and_track_colored_objects(frame, lower_green, upper_green)
-                if green_center is not None:
-                    cv2.circle(frame, green_center, green_radius, (0, 255, 0), 2)
+                left_center, left_radius = detect_and_track_colored_objects(frame, lower_left, upper_left)
+                if left_center is not None:
+                    cv2.circle(frame, left_center, left_radius, (0, 255, 0), 2)
 
             if i>=3:
-                blue_center, blue_radius = detect_and_track_colored_objects(frame, lower_blue, upper_blue)
-                if blue_center is not None:
-                    cv2.circle(frame, blue_center, blue_radius, (255, 0, 0), 2)
+                move_center, move_radius = detect_and_track_colored_objects(frame, lower_move, upper_move)
+                if move_center is not None:
+                    cv2.circle(frame, move_center, move_radius, (255, 0, 0), 2)
 
             cv2.imshow("setting mouse", frame)
             cv2.setMouseCallback("setting mouse", mouse_click)
