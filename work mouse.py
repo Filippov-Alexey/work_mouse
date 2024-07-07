@@ -1,19 +1,16 @@
+import os
 import cv2
 import time
 import numpy as np
 import pyautogui
+from key import *
+from move import *
+from detect import *
+from data import *
+from keyboard_layout import *
+from read_file import *
 
-def read_every_second_line(file_path):
-    with open(file_path, 'r') as file:
-        lines = file.readlines()
-    
-    every_second_line = []
-    for index in range(1, len(lines), 2):
-        every_second_line.append(lines[index])
-    
-    return every_second_line
-
-def move_cursor(move_center, square_left, square_right, square_top, square_bottom, sm):
+def move_cursor_mouse(move_center, square_left, square_right, square_top, square_bottom, sm):
     x, y = move_center
     dx, dy = 0, 0
 
@@ -40,31 +37,10 @@ def move_cursor(move_center, square_left, square_right, square_top, square_botto
         dx = sm
         dy = sm
 
-    if dx or dy:
-        screen_x, screen_y = pyautogui.position()
-        new_x = screen_x + dx
-        new_y = screen_y + dy
-        pyautogui.moveTo(new_x, new_y)
-
-def detect_and_track_colored_objects(frame, lower_rigth, upper_rigth):
-    rigth_center = None
-    rigth_radius = 0
-
-    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-    mask_rigth = cv2.inRange(hsv, lower_rigth, upper_rigth)
-
-    kernel = np.ones((3, 3), np.uint8)
-    mask_rigth = cv2.morphologyEx(mask_rigth, cv2.MORPH_OPEN, kernel, iterations=2)
-    mask_rigth = cv2.morphologyEx(mask_rigth, cv2.MORPH_CLOSE, kernel, iterations=2)
-
-    contours_rigth, _ = cv2.findContours(mask_rigth, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    for contour in contours_rigth:
-        if cv2.contourArea(contour) > 100:
-            (x, y), radius = cv2.minEnclosingCircle(contour)
-            if radius > rigth_radius:
-                rigth_center = (int(x), int(y))
-                rigth_radius = int(radius)
-    return rigth_center, rigth_radius
+    screen_x, screen_y = pyautogui.position()
+    new_x = screen_x + dx
+    new_y = screen_y + dy
+    pyautogui.moveTo(new_x, new_y)
 
 def handle_mouse_center(frame, left_center, left_radius, sec, button, color):
     cv2.circle(frame, left_center, left_radius, color, 2)
@@ -72,66 +48,15 @@ def handle_mouse_center(frame, left_center, left_radius, sec, button, color):
     pyautogui.mouseUp(button=button)
     time.sleep(sec)
 
-every_second_line = read_every_second_line('settings.txt')
-every_second_line2 = read_every_second_line('color.txt')
-horizontally=int(every_second_line[5])
-vertically=int(every_second_line[6])
-turn=int(every_second_line[7])
-sec = float(every_second_line[0])
-sm = int(every_second_line[1])
-camera = int(every_second_line[2])
-close = int(every_second_line[8])
-lower_rigth = []
-upper_rigth = []
-lower_left = []
-upper_left = []
-lower_move = []
-upper_move = []
-
-lower_rigth = np.array(eval(eval(every_second_line2[0])),dtype=np.uint8)
-upper_rigth = np.array(eval(eval(every_second_line2[1])),dtype=np.uint8)
-lower_left = np.array(eval(eval(every_second_line2[2])),dtype=np.uint8)
-upper_left = np.array(eval(eval(every_second_line2[3])),dtype=np.uint8)
-lower_move = np.array(eval(eval(every_second_line2[4])),dtype=np.uint8)
-upper_move = np.array(eval(eval(every_second_line2[5])),dtype=np.uint8)
-
-cap = cv2.VideoCapture(camera)
-text_font = cv2.FONT_HERSHEY_SIMPLEX
-text_scale = 1
-text_thickness = 2
-pyautogui.FAILSAFE = False
-screen_width,screen_height = pyautogui.size()
-l=False
-r=False
-
-cell_width = int(cap.get(3) / 3)
-cell_height = int(cap.get(4) / 3)
-square_top = 0 
-square_bottom = cell_height
-square_left = 0
-square_right = cell_width
-while True:
-    ret, frame = cap.read()
-    w,h = (int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
-    if turn==90 or turn==270:
-        center_x = 240
-        center_y = 240
-        frame=cv2.resize(frame, (h,w), cv2.INTER_AREA)
-    else:
-        center_y = w / 2
-        center_x = h / 2
-    M = cv2.getRotationMatrix2D((center_x, center_y), turn, 1)
-
-    frame = cv2.warpAffine(frame, M, (w,h))
-
-
-    if horizontally==1:
-        frame=cv2.flip(frame,1)
-    if vertically==1:
-        frame=cv2.flip(frame,0)
-
-    square_index = 0
-
+def move_mouse():
+    global ck,l,r
+    square_index=0
+    cell_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH) / 3)
+    cell_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT) / 3)
+    square_top = 0 
+    square_bottom = cell_height
+    square_left = 0
+    square_right = cell_width
     for i in range(3):
         for j in range(3):
             x = j * cell_width
@@ -148,41 +73,104 @@ while True:
     if left_center is not None and move_center is None and rigth_center is None:
         handle_mouse_center(frame,left_center,left_radius,sec,'right',(0, 255, 0))
 
-    if rigth_center is not None and move_center is None and left_center is None:
+    elif rigth_center is not None and move_center is None and left_center is None:
         handle_mouse_center(frame,rigth_center,rigth_radius,sec,'left',(0, 0, 255))
 
-    if move_center is not None and rigth_center is None and left_center is None:
+    elif move_center is not None and rigth_center is None and left_center is None:
         cv2.circle(frame, move_center, move_radius, (255, 0, 0), 2)
-        move_cursor(move_center, square_left, square_right, square_top, square_bottom, sm)
+        move_cursor_mouse(move_center, square_left, square_right, square_top, square_bottom, sm)
 
-    if move_center is not None and rigth_center is not None and left_center is None:
+    elif move_center is not None and rigth_center is not None and left_center is None:
         cv2.circle(frame, move_center, move_radius, (255, 255, 0), 2)
         pyautogui.mouseDown(button='left')
         l=True
-        move_cursor(move_center, square_left, square_right, square_top, square_bottom, sm)
+        move_cursor_mouse(move_center, square_left, square_right, square_top, square_bottom, sm)
 
-    if move_center is not None and rigth_center is None and left_center is not None:
+    elif move_center is not None and rigth_center is None and left_center is not None:
         cv2.circle(frame, left_center, left_radius, (0, 255, 100), 2)
         pyautogui.mouseDown(button='right')
         r=True
-        move_cursor(move_center, square_left, square_right, square_top, square_bottom, sm)
+        move_cursor_mouse(move_center, square_left, square_right, square_top, square_bottom, sm)
 
-    if move_center is None and rigth_center is None and left_center is None:
+    elif move_center is None and rigth_center is None and left_center is None:
         if r:
             pyautogui.mouseUp(button='right')
             r=False
         if l:
             pyautogui.mouseUp(button='left')
             l=False
-         
-    cv2.imshow("Work mouse", frame)
 
-    if cv2.waitKey(1) == ord('q'):
+    elif move_center is None and rigth_center is not None and left_center is not None:
+        return True
+
+every_second_line = read_every_second_line('settings.txt')
+every_second_line2 = read_every_second_line('color.txt')
+if os.path.exists('settings camere keyboard.txt'):
+    every_second_line1 = read_every_second_line('settings camere keyboard.txt')
+    cam=int(every_second_line1[0])
+else:
+    cam=''
+horizontally=int(every_second_line[5])
+vertically=int(every_second_line[6])
+turn=int(every_second_line[7])
+sec = float(every_second_line[0])
+sm = int(every_second_line[1])
+camera = int(every_second_line[2])
+close = int(every_second_line[8]) 
+camtokey = int(every_second_line[9])
+
+index=run_command_wait('python "test mouse.py"')
+
+lower_move = np.array(eval(eval(every_second_line2[0+1*int(index)])),dtype=np.uint8)
+upper_move = np.array(eval(eval(every_second_line2[1+1*int(index)])),dtype=np.uint8)
+lower_left = np.array(eval(eval(every_second_line2[2+1*int(index)])),dtype=np.uint8)
+upper_left = np.array(eval(eval(every_second_line2[3+1*int(index)])),dtype=np.uint8)
+lower_rigth = np.array(eval(eval(every_second_line2[4+1*int(index)])),dtype=np.uint8)
+upper_rigth = np.array(eval(eval(every_second_line2[5+1*int(index)])),dtype=np.uint8)
+
+cap = cv2.VideoCapture(camera)
+
+ck=True
+if cam==camera:
+    camkey=False
+else:
+    camkey=True
+
+while True:
+    time.sleep(0.2)
+
+    frame=camere_update(cap,turn,horizontally,vertically)
+    if camkey==True:
+        ck=move_mouse()
+    elif camtokey==1:
+        if ck==False or ck==None:
+            ck=move_mouse()
+        else:
+            left_center, left_radius,move_center, move_radius, square_top,square_bottom,square_left,square_right=keylay(cap,shift,frame,lower_left, upper_left, lower_move, upper_move)
+            rigth_center, rigth_radius=detect_and_track_colored_objects(frame, lower_rigth, upper_rigth)
+
+            if move_center is not None and rigth_center is None and left_center is None:
+                cv2.circle(frame, move_center, move_radius, (255, 0, 0), 2)
+                l=False
+                
+            elif move_center is not None and rigth_center is not None and left_center is None:
+                cv2.circle(frame, move_center, move_radius, (255, 255, 0), 2)
+                if l==False:
+                    sim,l=move_cursor(move_center, square_left, square_right, square_top, square_bottom, l)
+                    key(sim)
+
+            elif move_center is None and rigth_center is not None and left_center is not None and ck==True:
+                ck=False
+            
+            if move_center is not None:
+                cv2.circle(frame, move_center, move_radius-5, (0, 0, 0), 2)
+            if rigth_center is not None:
+                cv2.circle(frame, rigth_center, rigth_radius-5, (125, 85, 41), 2)
+            if left_center is not None:
+                cv2.circle(frame, left_center, left_radius-5, (258, 255, 256), 2)
+
+    if show_frame('Work mouse',frame, close):
         break
-
-    if close==1 and cv2.getWindowProperty('Work mouse', cv2.WND_PROP_VISIBLE) < 1:
-        break
-
 cap.release()
 cv2.destroyAllWindows()
 

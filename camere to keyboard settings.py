@@ -2,7 +2,6 @@ from cv2_enumerate_cameras import enumerate_cameras
 import cv2
 import tkinter as tk
 from PIL import ImageTk, Image
-from run import*
 
 selected_camera = 0
 flip_horizontally = False
@@ -25,26 +24,18 @@ def flip_horizontally_toggle():
 def flip_vertically_toggle():
     global flip_vertically
     flip_vertically = not flip_vertically
- 
+
 def save_settings():
-    with open('settings.txt', 'a') as f:
-        f.write(f'Pause:\n{scale1.get()/100}\n')
-        f.write(f'Speed:\n{scale.get()}\n')
+    with open('settings camere keyboard.txt', 'a') as f:
         f.write(f'Camera:\n{selected_camera}\n')
-        f.write(f'autorun:\n{flag_var.get()}\n')
-        f.write(f'autorun key:\n{flag_var1.get()}\n')
         f.write(f'horizontally:\n{int(flip_horizontally)}\n')
         f.write(f'vertically:\n{int(flip_vertically)}\n')
         f.write(f'turn:\n{rotate_camera}\n')
         f.write(f'close:\n{flag_var2.get()}\n')
-        f.write(f'camere to keyboard:\n{flag_var3.get()}\n')
         root.quit()
         cap.release()
         cv2.destroyAllWindows()
         exit
-
-def openkey():
-    run_key()
 
 def rotate_camera_90():
     global rotate_camera
@@ -101,12 +92,14 @@ def update_frame():
         canvas.image = photo
     root.after(15, update_frame)
 
-root = tk.Tk()
+
 camn=[]
 for camera_info in enumerate_cameras(cv2.CAP_MSMF):
     camn.append(camera_info.index)
- 
-root.title("Camera and Settings")
+
+root = tk.Tk()
+root.title("Camera for keyboard")
+
 camera_indices = list(camn)
 
 camera_var = tk.StringVar(root)
@@ -115,7 +108,7 @@ camera_var.set(camera_indices[0])
 text = tk.Label(root, text='Настройки')
 text.pack(side='top')
 
-camera_label = tk.Label(root, text="Выберите камеру для мыши:")
+camera_label = tk.Label(root, text="Выберите камеру для клавиатуры:")
 camera_label.pack(side='top')
 
 camera_menu = tk.OptionMenu(root, camera_var, *camera_indices, command=change_camera)
@@ -124,21 +117,7 @@ camera_menu.pack(side='top')
 canvas = tk.Canvas(root, width=640, height=480)
 canvas.pack(side='left')
 
-flag_var = tk.IntVar()
-flag_var1 = tk.IntVar()
 flag_var2 = tk.IntVar()
-flag_var3 = tk.IntVar()
-
-flag_checkbox = tk.Checkbutton(root, text="Автозапуск", variable=flag_var)
-flag_checkbox.pack(side='top')
-
-flag_checkbox1 = tk.Checkbutton(root, text="Запуск экранной клавиатуры", variable=flag_var1)
-flag_checkbox1.pack(side='top')
-
-button_frame1 = tk.Frame(root)
-button_frame1.pack()
-save_button = tk.Button(button_frame1, text="посмотреть клавиатуру", command=openkey)
-save_button.pack(side='bottom')
 
 close_checkbox = tk.Checkbutton(root, text="Закрывание окна", variable=flag_var2)
 close_checkbox.pack(side='top')
@@ -157,21 +136,6 @@ flip_vertically_button.pack(side='left')
 
 rotate_camera_button = tk.Button(button_frame, text="Повернуть камеру", command=rotate_camera_90)
 rotate_camera_button.pack(side='left')
-
-scale = tk.Scale(root, from_=0, to=100, orient=tk.HORIZONTAL)
-scale.pack(side='bottom')
-
-tl = tk.Label(root, text="Шаг перемещения:")
-tl.pack(side='bottom')
-
-scale1 = tk.Scale(root, from_=0, to=100, orient=tk.HORIZONTAL)
-scale1.pack(side='bottom')
-
-tl = tk.Label(root, text="Задержка:")
-tl.pack(side='bottom')
-
-camkey_checkbox = tk.Checkbutton(root, text="Использовать камеру для печатанья", variable=flag_var3)
-camkey_checkbox.pack(side='top')
 
 cap = None
 for idx, camera_idx in enumerate(camera_indices):
