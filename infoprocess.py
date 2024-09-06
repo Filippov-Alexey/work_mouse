@@ -16,9 +16,9 @@ def run_other_scripts():
 
     i+=1
 
-    line=read_every_second_line('settingsubprocess.txt')
+    line=read_every_second_line('settings.txt')
     if line[9]=='1\n':
-        cam = subprocess.Popen(['python', 'camere to keyboard settingsubprocess.py'])
+        cam = subprocess.Popen(['python', 'camere to keyboard settings.py'])
         cam.wait()
 
         i+=1
